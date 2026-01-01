@@ -46,12 +46,12 @@ def test_delete_city(api_client):
 def test_create_duplicate_city(api_client):
     api_client.post(
         "/cities",
-        json={"name": "Kyiv", "additional_info": "Capital"}
+        json={"name": "Kharkiv", "additional_info": "First"}
     )
 
     response = api_client.post(
         "/cities",
-        json={"name": "Kyiv", "additional_info": "Duplicate"}
+        json={"name": "Kharkiv", "additional_info": "Duplicate"}
     )
 
     assert response.status_code == 409
