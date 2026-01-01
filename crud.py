@@ -4,16 +4,23 @@ from datetime import datetime
 import schemas
 import models
 
+def get_city_by_name(db: Session, name: str):
+    return db.query(models.City).filter(models.City.name == name).first()
+
 
 def create_city(db: Session, city: schemas.CityCreate):
-    city = models.City(
+    existing_city = get_city_by_name(db, city.name)
+    if existing_city:
+        return None
+
+    db_city = models.City(
         name=city.name,
-        additional_info=city.additional_info
+        additional_info=city.additional_info,
     )
-    db.add(city)
+    db.add(db_city)
     db.commit()
-    db.refresh(city)
-    return city
+    db.refresh(db_city)
+    return db_city
 
 
 def get_cities(db: Session, skip: int = 0, limit: int = 10):

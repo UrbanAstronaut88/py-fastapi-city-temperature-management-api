@@ -22,11 +22,12 @@ async def fetch_temperature(city_name: str) -> float:
         )
         geo_data = geo_response.json()
 
-        if "results" not in geo_data:
-            raise ValueError(f"City '{city_name}' not found")
+        if "results" not in geo_data or not geo_data["results"]:
+            raise ValueError(f"City '{city_name}' not found in geocoding API")
 
-        latitude = geo_data["results"][0]["latitude"]
-        longitude = geo_data["results"][0]["longitude"]
+        location = geo_data["results"][0]
+        latitude = location["latitude"]
+        longitude = location["longitude"]
 
         weather_response = await client.get(
             "https://api.open-meteo.com/v1/forecast",
@@ -45,27 +46,31 @@ async def fetch_temperature(city_name: str) -> float:
 async def update_temperatures(db: Session = Depends(get_db)):
     cities = crud.get_cities(db=db)
 
-    results = []
+    created = 0
+    failed = []
 
     for city in cities:
         try:
             temp = await fetch_temperature(city.name)
-
-            temperature_record = crud.create_temperature(
+            crud.create_temperature(
                 db=db,
                 city_id=city.id,
                 temperature=temp,
                 date_time=datetime.utcnow()
             )
-
-            results.append(temperature_record)
-
+            created += 1
         except Exception as e:
-            continue
+            failed.append(
+                {
+                    "city_id": city.id,
+                    "city_name": city.name,
+                    "error": str(e)
+                }
+            )
 
     return {
-        "message": "Temperatures updated",
-        "records_created": len(results)
+        "records_created": created,
+        "failed": failed
     }
 
 

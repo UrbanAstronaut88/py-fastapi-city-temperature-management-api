@@ -7,7 +7,7 @@ def test_update_temperatures(api_client):
     response = api_client.post("/temperatures/update")
 
     assert response.status_code == 200
-    assert "records_created" in response.json()
+    assert response.json()["records_created"] >= 1
 
 
 def test_get_temperatures(api_client):

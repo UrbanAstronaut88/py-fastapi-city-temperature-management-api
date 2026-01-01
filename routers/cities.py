@@ -18,7 +18,13 @@ def create_city(
     city: schemas.CityCreate,
     db: Session = Depends(get_db),
 ):
-    return crud.create_city(db=db, city=city)
+    db_city = crud.create_city(db=db, city=city)
+    if db_city is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="City already exists",
+        )
+    return db_city
 
 
 @router.get(

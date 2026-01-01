@@ -41,3 +41,27 @@ def test_delete_city(api_client):
 
     delete_response = api_client.delete(f"/cities/{city_id}")
     assert delete_response.status_code == 204
+
+
+def test_create_duplicate_city(api_client):
+    api_client.post(
+        "/cities",
+        json={"name": "Kyiv", "additional_info": "Capital"}
+    )
+
+    response = api_client.post(
+        "/cities",
+        json={"name": "Kyiv", "additional_info": "Duplicate"}
+    )
+
+    assert response.status_code == 409
+
+
+def test_get_nonexistent_city(api_client):
+    response = api_client.get("/cities/999")
+    assert response.status_code == 404
+
+
+def test_delete_nonexistent_city(api_client):
+    response = api_client.delete("/cities/999")
+    assert response.status_code == 404
